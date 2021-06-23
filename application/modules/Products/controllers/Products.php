@@ -33,25 +33,25 @@ class Products extends RESTNoAuth
     {
         $data = [
             'id' => $this->post('id'),
-            'nama_barang' => $this->post('nama_barang'),
+            'nama' => $this->post('nama_barang'),
             'harga' => $this->post('harga'),
             'stok' => $this->post('stok'),
             'id_category' => $this->post('id_category'),
             'deskripsi' => $this->post('deskripsi')
         ];
         if ($this->Products_model->createProducts($data) > 0) {
-
+            // var_dump($data);
             $this->set_response([
                 'status' => true,
                 'message' => 'new products has been created.',
                 'data' => $data
 
             ], REST_Controller::HTTP_CREATED);
-        } else {
-            $this->set_response([
-                'status => false',
-                'message => fialed to created'
-            ], REST_Controller::HTTP_NOT_FOUND);
+            // } else {
+            //     $this->set_response([
+            //         'status => false',
+            //         'message => fialed to created'
+            //     ], REST_Controller::HTTP_NOT_FOUND);
         }
     }
 

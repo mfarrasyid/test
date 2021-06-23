@@ -14,7 +14,6 @@ class Orders extends RESTNoAuth
     public function index_get()
     {
         $nama = $this->get('nama_barang');
-
         if ($nama == null) {
             $orders = $this->Orders_model->getOrder();
         } else {
@@ -36,70 +35,29 @@ class Orders extends RESTNoAuth
 
     public function index_post()
     {
-
         $this->form_validation->set_rules('id_products', 'Id Products', 'required');
         $this->form_validation->set_rules('qty', 'Qty', 'required');
 
-        // $this->db->select('*');
-        // $this->db->from('products');
-        // $subQuery = $this->db->get_compiled_select();
-
-        // // Main Query
-        // $this->db->select('*');
-        // $this->db->from('category');
-        // $this->db->join("($subQuery) AS nama_category ", 'category.id = products.id_category');
-        // $r = $this->db->get();
-        // var_dump($r);
-        $id = $this->post('id_products');
-        $this->db->select('*');
-        // $this->db->select('nama');
-        $this->db->where('id', $id);
-        $this->db->from('products');
-
-        $this->db->where('id', $id);
-        $query2 = $this->db->get();
-
-        $row = $query2->row();
-        var_dump($row);
-        die;
-
-        // $data = $this->db->table("products")
-        //     ->select(
-        //         "category.*",
-        //         $this->db->raw("(SELECT SUM(products.id) FROM products
-        //                         WHERE products.id_product = category.id
-        //                         GROUP BY products.id_product) as product"),
-        //         // $this->db->raw("(SELECT SUM(products_sell.sell) FROM products_sell
-        //         //                 WHERE products_sell.product_id = products.id
-        //         //                 GROUP BY products_sell.product_id) as product_sell")
-        //     )
-        //     ->get();
-        //     $row = $data->row();
-        //     var_dump($row);
-        //     die  ;
-
-        // $qty = $this->post('qty');
-        // $harga = 4000;
-        // $total = $qty * $harga;
 
         if ($this->form_validation->run() == TRUE) {
-
             $data = array(
                 'id_product' => $this->post('id_products'),
-                'qty' => $this->post('qty')
-                // 'category_barang' => $this->post('category_barang'),
-                // 'nama_barang' => $this->post('nama_barang'),
-                // 'total' => $total
+                'qty' => $this->post('qty'),
+                // 'total' => $this->post(qty * )
             );
+            $simpan = $this->db->insert('order', $data);
+            $order_id = $this->db->insert_id();
 
-            $simpan = $this->Orders_model->createOrder($data);
             if ($simpan) {
-
+                // $total = $this->db->select('SUM(qty) + SUM(harga) + SUM(total) as total', true);
+                // dd($total);
+                // die;
+                $query = $this->db->from('order')->join('products', 'products.id = order.id_product')->where('order.id', $order_id)->get()->row();
                 header('Content-Type: application/json');
                 echo json_encode(
                     array(
                         'success' => true,
-                        'data' => $data,
+                        'data' => $query,
                         'message' => 'Data Berhasil Disimpan!'
                     )
                 );

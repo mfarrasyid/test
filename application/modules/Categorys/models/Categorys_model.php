@@ -2,12 +2,12 @@
 
 class Categorys_model extends CI_Model
 {
-    public function getCategory($nama = null)
+    public function getCategory($nama_category = null)
     {
-        if ($nama === null) {
+        if ($nama_category === null) {
             return $this->db->get('category')->result_array();
         } else {
-            return $this->db->get_where('category', ['nama' => $nama])->result_array();
+            return $this->db->get_where('category', ['nama_category' => $nama_category])->result_array();
         }
     }
 

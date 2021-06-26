@@ -1,9 +1,12 @@
 {
-    "name": "mydan3/library",
-    "authors": [{
-        "name": "Muhamad Yusup Hamdani",
-        "email": "dani.webdev@gmail.com"
-    }],
+    "name": "boy/rest-starter-kit-main",
+    "description": "sesion php-jwt",
+    "authors": [
+        {
+            "name": "m febrian arrasyid",
+            "email": "mfarrasyid12@gmail.com"
+        }
+    ],
     "require": {
         "php": "^7.4 | ^8.0",
         "phpoffice/phpspreadsheet": "^1.18",

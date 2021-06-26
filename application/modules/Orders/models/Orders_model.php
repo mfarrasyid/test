@@ -10,16 +10,22 @@ class Orders_model extends CI_Model
     //     $this->db = db_connect();
     // }
 
-    public function getOrder($nama_barang = null)
+    public function getOrder()
+    {
+        $this->load->model('Orders_model', 'model');
+        $data = [
+            'order' => $this->model->getOrder()
+        ];
+
+        return $this->db->get($data)->result_array();
+    }
+
+    public function update($table, $array, $id)
     {
 
-        $order_id = $this->db->insert_id();
-        if ($nama_barang === null) {
-            $query = $this->db->from('order')->join('products', 'products.id = order.id_product')->where('order.id', $order_id)->result_array();
-            DD($query);
-        } else {
-            return $this->db->get_where('order', ['nama_barang' => $nama_barang])->result_array();
-        }
+        $this->db->set($array);
+        $this->db->where('id', $id);
+        $this->db->update($table);
     }
 
     // public function createOrder($data)

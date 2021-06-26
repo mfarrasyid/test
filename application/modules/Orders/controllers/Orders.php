@@ -2,7 +2,7 @@
 
 use GuzzleHttp\Psr7\Message;
 
-class Orders extends RESTNoAuth
+class Orders extends RESTWithAuth
 {
     public function __construct()
     {
@@ -13,17 +13,19 @@ class Orders extends RESTNoAuth
 
     public function index_get()
     {
-        $nama = $this->get('nama_barang');
-        if ($nama == null) {
-            $orders = $this->Orders_model->getOrder();
-        } else {
-            $orders = $this->Orders_model->getOrder($nama);
-        }
-        if ($orders) {
+
+        $data_order = $this->db->select('p.id,o.id_product,p.nama,p.deskripsi,p.id_category,c.nama_category,o.qty, p.harga, o.total')
+            ->from('order o')
+            ->join('products p ', 'o.id_product=p.id')
+            ->join('category c', 'p.id_category=c.id')
+            ->get()->result_array();
+
+
+        if ($data_order) {
             $this->set_response([
-                'status => true',
-                'message => data berhasil ditemukan',
-                'data' => $orders
+                'status' => true,
+                'message' => 'data berhasil ditemukan',
+                'data' => $data_order
             ], REST_Controller::HTTP_OK);
         } else {
             $this->set_response([
@@ -38,38 +40,74 @@ class Orders extends RESTNoAuth
         $this->form_validation->set_rules('id_products', 'Id Products', 'required');
         $this->form_validation->set_rules('qty', 'Qty', 'required');
 
+        $id_products =  $this->post('id_products');
+        $products = $this->db->from('products')->select(['harga', 'stok'])->where('id', $id_products)->get()->row();
 
+        $harga_value = $products->harga;
+        $qty = $this->post('qty');
+        $total = $harga_value * $qty;
+        // dd($total);
+        // die;
         if ($this->form_validation->run() == TRUE) {
             $data = array(
                 'id_product' => $this->post('id_products'),
                 'qty' => $this->post('qty'),
-                // 'total' => $this->post(qty * )
+                'total' => $total
             );
-            $simpan = $this->db->insert('order', $data);
-            $order_id = $this->db->insert_id();
 
-            if ($simpan) {
-                // $total = $this->db->select('SUM(qty) + SUM(harga) + SUM(total) as total', true);
-                // dd($total);
+            $qtyproduct = $products->stok;
+            if ($qty > $qtyproduct) {
+                // dd('haooo');
                 // die;
-                $query = $this->db->from('order')->join('products', 'products.id = order.id_product')->where('order.id', $order_id)->get()->row();
-                header('Content-Type: application/json');
-                echo json_encode(
-                    array(
-                        'success' => true,
-                        'data' => $query,
-                        'message' => 'Data Berhasil Disimpan!'
-                    )
-                );
+                $this->response([
+                    'status'    => false,
+                    'message'   => 'Maaf stok kami tidak mencukupi'
+                ], REST_Controller::HTTP_NOT_FOUND);
             } else {
-
-                header('Content-Type: application/json');
-                echo json_encode(
-                    array(
-                        'success' => false,
-                        'message' => 'Data Gagal Disimpan!'
-                    )
+                $qtyreal = $qtyproduct - $qty;
+                $datanya = array(
+                    'stok' => $qtyreal,
                 );
+
+                $updateqq = $this->Orders_model->update('products', $datanya, $id_products);
+
+                $simpan = $this->db->insert('order', $data);
+                $order_id = $this->db->insert_id();
+
+                // dd($data);
+                if ($simpan) {
+                    // $query = $stok - $qty;
+                    $query = $this->db->select('p.id,o.id_product,p.nama,p.deskripsi,p.id_category,c.nama_category,o.qty, p.harga, o.total')
+                        ->from('order o')
+                        ->join('products p', 'p.id = o.id_product')->where('o.id', $order_id)
+                        ->join('category c', 'p.id_category=c.id')
+                        ->get()->row();
+
+                    // $id_product =  $this->post('id_products');
+                    // $query_stok = $this->db->from('products')->select('stok')->where('id', $id_product)->get()->row();
+                    // $stok = $query_stok->stok;
+
+                    // dd($query);
+                    // die;
+                    header('Content-Type: application/json');
+                    echo json_encode(
+                        array(
+                            'success' => true,
+                            'data' => $query,
+                            // 'data' => $total_stok,
+                            'message' => 'Data Berhasil Disimpan!'
+                        )
+                    );
+                } else {
+
+                    header('Content-Type: application/json');
+                    echo json_encode(
+                        array(
+                            'success' => false,
+                            'message' => 'Data Gagal Disimpan!'
+                        )
+                    );
+                }
             }
         } else {
 

@@ -1,7 +1,7 @@
 <?php
 
 
-class Products extends RESTNoAuth
+class Products extends RESTWithAuth
 {
     public function __construct()
     {
@@ -10,28 +10,32 @@ class Products extends RESTNoAuth
     }
     public function index_get()
     {
-        $id = $this->get('id');
-        if ($id === null) {
-            $products = $this->Products_model->getProducts();
+        $nama = $this->get('nama');
+        if ($nama === null) {
+            $data_order = $this->db->select('p.id, p.nama,c.nama_category, c.description, p.stok,harga ')
+                ->from('products p')
+                ->join('category c ', 'p.id_category=c.id')
+                ->get()->result_array();
         } else {
-            $products = $this->Products_model->getProducts($id);
+            $data_order = $this->Products_model->getProducts($nama);
         }
-        if ($products) {
+        if ($data_order) {
             $this->set_response([
-                'status => true',
-                'data' => $products
+                'status' => true,
+                'message' => 'data berhasil ditemukan',
+                'data' => $data_order
             ], REST_Controller::HTTP_OK);
         } else {
             $this->set_response([
                 'status => false',
-                'message => id not found'
+                'message => data tidak dapat ditemukan'
             ], REST_Controller::HTTP_NOT_FOUND);
         }
     }
 
     public function index_post()
     {
-        $data = [
+        $data_order = [
             'id' => $this->post('id'),
             'nama' => $this->post('nama_barang'),
             'harga' => $this->post('harga'),
@@ -39,19 +43,23 @@ class Products extends RESTNoAuth
             'id_category' => $this->post('id_category'),
             'deskripsi' => $this->post('deskripsi')
         ];
-        if ($this->Products_model->createProducts($data) > 0) {
-            // var_dump($data);
+        // $data_order = $this->db->select('p.id, p.nama,c.nama_category, c.description, p.stok,harga ')
+        //     ->from('products p')
+        //     ->join('category c ', 'p.id_category=c.id')
+        //     ->get()->result_array();
+        if ($this->Products_model->createProducts($data_order) > 0) {
+
             $this->set_response([
                 'status' => true,
                 'message' => 'new products has been created.',
-                'data' => $data
+                'data' => $data_order
 
             ], REST_Controller::HTTP_CREATED);
-            // } else {
-            //     $this->set_response([
-            //         'status => false',
-            //         'message => fialed to created'
-            //     ], REST_Controller::HTTP_NOT_FOUND);
+        } else {
+            $this->set_response([
+                'status => false',
+                'message => fialed to created'
+            ], REST_Controller::HTTP_NOT_FOUND);
         }
     }
 

@@ -1,7 +1,7 @@
 <?php
 
 use Firebase\JWT\JWT;
-
+use Illuminate\Http\Request;
 
 class Access extends RESTNoAuth
 {
@@ -32,6 +32,8 @@ class Access extends RESTNoAuth
 
     function login_post()
     {
+        $today =  time();
+        $exp = strtotime("2021-06-30");
         $email = $this->input->post('email', TRUE);
         $password = $this->input->post('password', TRUE);
         $users = $this->Access_model->getUserWhere($email, $password);
@@ -39,8 +41,8 @@ class Access extends RESTNoAuth
         $payload = array(
             "iss" => "dari kami",
             "aud" => "untuk user",
-            "iat" => time(),
-            "nbf" => strtotime('2021-06-15'),
+            "iat" => $today,
+            "exp" => $exp,
             "data" => [
                 "password" => $password,
                 "email" => $email,
@@ -67,7 +69,7 @@ class Access extends RESTNoAuth
         } else {
             $this->set_response([
                 "status" => false,
-                "message" => "id not found"
+                "message" => "Username / Password salah"
             ], REST_Controller::HTTP_NOT_FOUND);
         }
     }

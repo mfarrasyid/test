@@ -13,15 +13,19 @@ class Orders extends RESTWithAuth
 
     public function index_get()
     {
-
-        $data_order = $this->db->select('p.id,o.id_product,p.nama,p.deskripsi,p.id_category,c.nama_category,o.qty, p.harga, o.total')
+        //data user ini warisan dari middleware 
+        $datauser = $this->datausers->id;
+        $data_order = $this->db->select('p.id,o.id_product,p.nama,o.id_users,p.deskripsi,p.id_category,c.nama_category,o.qty, p.harga, o.total', 'd_users')
             ->from('order o')
-            ->join('products p ', 'o.id_product=p.id')
-            ->join('category c', 'p.id_category=c.id')
+            ->join('users u', 'o.id_users=u.id', 'left')
+            ->join('products p ', 'o.id_product=p.id', 'left')
+            ->join('category c', 'p.id_category=c.id', 'left')
+            ->where('o.id_users', $datauser)
             ->get()->result_array();
-
-
+        // dd($data_order);
         if ($data_order) {
+
+            // dd($data_order);
             $this->set_response([
                 'status' => true,
                 'message' => 'data berhasil ditemukan',
@@ -29,8 +33,8 @@ class Orders extends RESTWithAuth
             ], REST_Controller::HTTP_OK);
         } else {
             $this->set_response([
-                'status => false',
-                'message => data tidak dapat ditemukan'
+                'status => true',
+                'message => Anda belum melakukan transaksi'
             ], REST_Controller::HTTP_NOT_FOUND);
         }
     }
@@ -50,6 +54,7 @@ class Orders extends RESTWithAuth
         // die;
         if ($this->form_validation->run() == TRUE) {
             $data = array(
+                'id_users' => $this->post('id_users'),
                 'id_product' => $this->post('id_products'),
                 'qty' => $this->post('qty'),
                 'total' => $total
@@ -77,8 +82,9 @@ class Orders extends RESTWithAuth
                 // dd($data);
                 if ($simpan) {
                     // $query = $stok - $qty;
-                    $query = $this->db->select('p.id,o.id_product,p.nama,p.deskripsi,p.id_category,c.nama_category,o.qty, p.harga, o.total')
+                    $query = $this->db->select('p.id,o.id_product,p.nama,o.id_users,p.deskripsi,p.id_category,c.nama_category,o.qty, p.harga, o.total')
                         ->from('order o')
+                        ->join('users u', 'o.id_users=u.id', 'left')
                         ->join('products p', 'p.id = o.id_product')->where('o.id', $order_id)
                         ->join('category c', 'p.id_category=c.id')
                         ->get()->row();

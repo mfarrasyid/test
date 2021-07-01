@@ -9,14 +9,29 @@ class Orders_model extends CI_Model
     // {
     //     $this->db = db_connect();
     // }
-
+    // public function getdataid($id_users)
+    // {
+    //     // $this->db->select('*');
+    //     $this->db->select('p.id,o.id_product,p.nama,o.id_users,p.deskripsi,p.id_category,c.nama_category,o.qty, p.harga, o.total', 'd_users')
+    //         ->from('order o')
+    //         ->join('users u', 'o.id_users=u.id')
+    //         ->join('products p ', 'o.id_product=p.id')
+    //         ->join('category c', 'p.id_category=c.id')
+    //         ->where('o.id_users', 'u.id')
+    //         ->get()->result_array();
+    //     $query = $this->db->get();
+    //     if ($query->num_rows() != 0) {
+    //         return $query->result_array();
+    //     } else {
+    //         return false;
+    //     }
+    // }
     public function getOrder()
     {
         $this->load->model('Orders_model', 'model');
         $data = [
             'order' => $this->model->getOrder()
         ];
-
         return $this->db->get($data)->result_array();
     }
 

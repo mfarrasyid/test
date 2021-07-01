@@ -33,27 +33,31 @@ class Access extends RESTNoAuth
     function login_post()
     {
         $today =  time();
-        $exp = strtotime("2021-06-30");
+        $exp = strtotime("2021-07-07");
+        $id_users = $this->input->post('email', TRUE);
         $email = $this->input->post('email', TRUE);
         $password = $this->input->post('password', TRUE);
         $users = $this->Access_model->getUserWhere($email, $password);
+        // dd($users->row());
         $key = "43211234";
         $payload = array(
-            "iss" => "dari kami",
-            "aud" => "untuk user",
             "iat" => $today,
             "exp" => $exp,
+            "id" => $users->row()->id,
             "data" => [
                 "password" => $password,
                 "email" => $email,
+
             ]
         );
 
         $token = JWT::encode($payload, $key);
+        // dd($token);
         // $decoded = JWT::decode($token, $key, array('HS256'));
         $user = $users->result();
         $return_data = [
             "token" => $token,
+
             "user"  => $user,
         ];
 

@@ -5,12 +5,12 @@ class Access_model extends CI_Model
 
     public function getUser()
     {
-
         return $this->db->get('users')->result_array();
     }
 
     public function getUserWhere($email, $pass)
     {
+
         $this->db->select('*');
         $this->db->from('users');
         $this->db->where('email', $email);

@@ -13,21 +13,24 @@ class Categorys extends RESTWithAuth
 
     public function index_get()
     {
+        //condition search by nama
         $nama_category = $this->get('nama_category');
-
+        //nama null = findall
         if ($nama_category == null) {
             $category = $this->Categorys_model->getCategory();
         } else {
+            // get data by nama 
             $category = $this->Categorys_model->getCategory($nama_category);
         }
         if ($category) {
-            dd($category);
+            //oke
             $this->set_response([
                 "status" => true,
                 "message" => "data berhasil ditemukan",
                 "data" => $category
             ], REST_Controller::HTTP_OK);
         } else {
+            //gagal
             $this->set_response([
                 "status" => false,
                 "message" => "data tidak dapat ditemukan"
@@ -36,39 +39,32 @@ class Categorys extends RESTWithAuth
     }
     public function index_post()
     {
+        //validasi form
         $this->form_validation->set_rules('nama', 'Nama Category', 'required');
 
         if ($this->form_validation->run() == TRUE) {
-
             $data = [
                 'nama_category' => $this->post('nama'),
                 'description' => $this->post('description')
             ];
+            //simpan ke database
             $simpan = ($this->Categorys_model->createCategory($data) > 0);
-
-            // dd($data);
-            // die;
             if ($simpan) {
-                header('Content-Type: application/json');
-                echo json_encode(
-                    array(
-                        'success' => true,
-                        'data' => $data,
-                        'message' => 'Data Berhasil Disimpan!'
-                    )
-                );
+                //ok
+                $this->set_response([
+                    'status' => true,
+                    'message' => 'data berhasil ditemukan',
+                    'data' => $data
+                ], REST_Controller::HTTP_OK);
             } else {
-
-                header('Content-Type: application/json');
-                echo json_encode(
-                    array(
-                        'success' => false,
-                        'message' => 'Data Gagal Disimpan!'
-                    )
-                );
+                //gagal
+                $this->set_response([
+                    'status' => true,
+                    'message' => 'data berhasil ditemukan'
+                ], REST_Controller::HTTP_OK);
             }
         } else {
-
+            //validasi form
             header('Content-Type: application/json');
             echo json_encode(
                 array(
@@ -77,26 +73,5 @@ class Categorys extends RESTWithAuth
                 )
             );
         }
-
-        // public function index_post()
-        // {
-
-        //     $data = [
-        //         'nama_category' => $this->post('nama'),
-        //         'description' => $this->post('description')
-        //     ];
-        //     if ($this->Categorys_model->createCategory($data) > 0) {
-        //         $this->set_response([
-        //             'status' => true,
-        //             'message' => 'new products has been created.',
-        //             'data' => $data
-        //         ], REST_Controller::HTTP_CREATED);
-        //     } else {
-        //         $this->set_response([
-        //             'status' => false,
-        //             'message => fialed to created'
-        //         ], REST_Controller::HTTP_NOT_FOUND);
-        //     }
-        // }
     }
 }

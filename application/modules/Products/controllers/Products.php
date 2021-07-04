@@ -10,15 +10,19 @@ class Products extends RESTWithAuth
     }
     public function index_get()
     {
-        $nama = $this->get('nama');
-        if ($nama === null) {
-            $data_order = $this->db->select('p.id, p.nama,c.nama_category, c.description, p.stok,harga ')
-                ->from('products p')
-                ->join('category c ', 'p.id_category=c.id')
-                ->get()->result_array();
+        //search sesuai nama products
+        $nama_product = $this->get('nama_product');
+        if ($nama_product === null) {
+            $data_order = $this->db->select('
+            p.id, p.nama_product,
+            (SELECT nama_category FROM category c WHERE c.id=p.id_category ) as nama_category,
+            p.deskripsi, p.stok, p.harga
+            ')->from('products p')->get()->result_array();
         } else {
-            $data_order = $this->Products_model->getProducts($nama);
+            //menampilkan sesuai search nama products
+            $data_order = $this->Products_model->getProducts($nama_product);
         }
+        //respon search oke
         if ($data_order) {
             $this->set_response([
                 'status' => true,
@@ -26,6 +30,7 @@ class Products extends RESTWithAuth
                 'data' => $data_order
             ], REST_Controller::HTTP_OK);
         } else {
+            //respon search gagal/tidak ada data
             $this->set_response([
                 'status => false',
                 'message => data tidak dapat ditemukan'
@@ -35,58 +40,28 @@ class Products extends RESTWithAuth
 
     public function index_post()
     {
+        //form create
         $data_order = [
             'id' => $this->post('id'),
-            'nama' => $this->post('nama_barang'),
+            'nama_product' => $this->post('nama_product'),
             'harga' => $this->post('harga'),
             'stok' => $this->post('stok'),
             'id_category' => $this->post('id_category'),
             'deskripsi' => $this->post('deskripsi')
         ];
-        // $data_order = $this->db->select('p.id, p.nama,c.nama_category, c.description, p.stok,harga ')
-        //     ->from('products p')
-        //     ->join('category c ', 'p.id_category=c.id')
-        //     ->get()->result_array();
         if ($this->Products_model->createProducts($data_order) > 0) {
-
+            //responn oke
             $this->set_response([
                 'status' => true,
                 'message' => 'new products has been created.',
                 'data' => $data_order
-
             ], REST_Controller::HTTP_CREATED);
         } else {
+            //respon gagal
             $this->set_response([
                 'status => false',
                 'message => fialed to created'
             ], REST_Controller::HTTP_NOT_FOUND);
-        }
-    }
-
-
-    public function index_delete()
-    {
-        $id = $this->get('id');
-        if ($id === null) {
-            $this->set_response([
-                'status => false',
-                'message => provide in id'
-            ], REST_Controller::HTTP_BAD_REQUEST);
-        } else {
-            if ($this->Products_model->deleteProducts($id) > 0) {
-                //ok
-                $this->set_response([
-                    'status => true',
-                    'id' => $id,
-                    'message' => 'deleted'
-                ], REST_Controller::HTTP_OK);
-            } else {
-                //gagal
-                $this->set_response([
-                    'status => false',
-                    'message => id not found'
-                ], REST_Controller::HTTP_BAD_REQUEST);
-            }
         }
     }
 }

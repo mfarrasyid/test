@@ -54,21 +54,26 @@ class Orders extends RESTWithAuth
     public function index_post()
     {
         //validasi untuk form
-        $this->form_validation->set_rules('id_products', 'Id Products', 'required');
+        $this->form_validation->set_rules('id_product', 'Id Product', 'required');
         $this->form_validation->set_rules('qty', 'Qty', 'required');
 
         //mengambil id yang di post dan select harga dan stok 
-        $id_products =  $this->post('id_products');
-        $products = $this->db->from('products')->select(['harga', 'stok'])->where('id', $id_products)->get()->row();
-
+        $id_product =  $this->post('id_product');
+        $products = $this->db
+            ->select([
+                '(SELECT p.harga FROM products p WHERE p.id=' . $id_product . ') as harga,
+                 (SELECT p.stok FROM products p WHERE p.id=' . $id_product . ') as stok'
+            ])->from('order')->get()->row();
         //perkaliaan untuk hasil total
+        // dd($products);
         $harga_value = $products->harga;
         $qty = $this->post('qty');
         $total = $harga_value * $qty;
+        // dd($total);
         if ($this->form_validation->run() == TRUE) {
             $data = array(
-                'id_users' => $this->post('id_users'),
-                'id_product' => $this->post('id_products'),
+                // 'id_users' => $this->post('id_users'),
+                'id_product' => $this->post('id_product'),
                 'qty' => $this->post('qty'),
                 'total' => $total
             );
@@ -86,28 +91,37 @@ class Orders extends RESTWithAuth
                 $datanya = array(
                     'stok' => $qtyreal,
                 );
-                $updateqq = $this->Orders_model->update('products', $datanya, $id_products);
+                $updateqq = $this->Orders_model->update('products', $datanya, $id_product);
 
                 //menampilkan hasil transaksi sesuai id transaksi
-                $order_id = $this->db->insert_id();
                 $simpan = $this->db->insert('order', $data);
+                $order_id = $this->db->insert_id();
+                // dd($order_id);
+                // die;
                 if ($simpan) {
-                    $query = $this->db->select('p.id,o.id_product,p.nama,o.id_users,p.deskripsi,p.id_category,c.nama_category,o.qty, p.harga, o.total')
-                        ->from('order o')
-                        ->join('users u', 'o.id_users=u.id', 'left')
-                        ->join('products p', 'p.id = o.id_product')->where('o.id', $order_id)
-                        ->join('category c', 'p.id_category=c.id')
-                        ->get()->row();
+                    $data_query = $this->db->select('
+                    id,
+                    id_product,
+                     (SELECT p.nama_product FROM products p WHERE p.id=o.id_product) as nama_products,
+                     (SELECT p.deskripsi FROM products p WHERE p.id=o.id_product) as deskripsi,
+                     (SELECT p.id_category FROM products p WHERE p.id=o.id_product) as id_category,
+                     (SELECT c.nama_category FROM category c WHERE c.id=
+                     (SELECT p.id_category FROM products p WHERE p.id=o.id_product)) as nama_category,    
+                     qty,
+                     (SELECT p.harga FROM products p WHERE p.id=o.id_product) as harga,
+                     total
+                     ')->from('order o')->where('o.id ', $order_id)->get()->result_array();
                     //respon oke
+                    // dd($data_query);
                     $this->set_response([
-                        'status => true',
+                        'status' => true,
                         'message' => 'Data Berhasil Disimpan!',
-                        'id' => $query,
+                        'data' => $data_query,
                     ], REST_Controller::HTTP_OK);
                 } else {
                     //respon gagal
                     $this->set_response([
-                        'status => false',
+                        'status' => false,
                         'message' => 'field is required'
                     ], REST_Controller::HTTP_NOT_FOUND);
                 }

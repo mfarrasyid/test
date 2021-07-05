@@ -13,11 +13,13 @@ class Products extends RESTWithAuth
         //search sesuai nama products
         $nama_product = $this->get('nama_product');
         if ($nama_product === null) {
-            $data_order = $this->db->select('
-            p.id, p.nama_product,
+            $data_order = $this->db->select('p.id, 
+            p.nama_product,
             (SELECT nama_category FROM category c WHERE c.id=p.id_category ) as nama_category,
-            p.deskripsi, p.stok, p.harga
-            ')->from('products p')->get()->result_array();
+            p.deskripsi,
+            p.stok,
+            p.harga')
+                ->from('products p')->get()->result_array();
         } else {
             //menampilkan sesuai search nama products
             $data_order = $this->Products_model->getProducts($nama_product);
